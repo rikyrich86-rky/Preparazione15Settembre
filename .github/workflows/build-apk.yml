@@ -35,7 +35,7 @@ jobs:
 
       - name: Estrai progetto
         run: |
-          unzip -q Preparazione15Settembre_v3_AndroidStudio.zip -d extracted
+          unzip -q RikyOnFire_v4_AndroidStudio.zip -d extracted
           PROJECT_DIR="$(dirname "$(find extracted -name settings.gradle.kts -print -quit)")"
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
