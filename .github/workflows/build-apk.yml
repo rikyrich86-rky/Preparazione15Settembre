@@ -1,0 +1,69 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Android 35
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Estrai progetto
+        run: |
+          ZIP="$(find . -maxdepth 1 -name '*.zip' -print -quit)"
+          unzip -q "$ZIP" -d extracted
+          PROJECT_DIR="$(dirname "$(find extracted -name settings.gradle.kts -print -quit)")"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
+      - name: Compila APK
+        run: |
+          cd "$PROJECT_DIR"
+          gradle --no-daemon assembleDebug
+
+      - name: Prepara APK
+        run: |
+          APK="$(find "$PROJECT_DIR/app/build/outputs/apk/debug" -name '*.apk' -print -quit)"
+          cp "$APK" "$GITHUB_WORKSPACE/Preparazione15Settembre.apk"
+
+      - name: Conserva APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Preparazione15Settembre-APK
+          path: Preparazione15Settembre.apk
+
+      - name: Pubblica APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v2.0 >/dev/null 2>&1; then
+            gh release upload v2.0 Preparazione15Settembre.apk --clobber
+          else
+            gh release create v2.0 Preparazione15Settembre.apk \
+              --title "Preparazione 15 Settembre v2.0" \
+              --notes "APK Android installabile."
+          fi
