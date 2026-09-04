@@ -40,9 +40,10 @@ jobs:
           PROJECT_DIR="$(dirname "$(find extracted -name settings.gradle.kts -print -quit)")"
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
-      - name: Compila APK
+     - name: Compila APK
         run: |
           cd "$PROJECT_DIR"
+          echo "android.useAndroidX=true" >> gradle.properties
           gradle --no-daemon assembleDebug
 
       - name: Prepara APK
